@@ -8,13 +8,15 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
 
-responses = []
+SESSION_KEY = "responses"
 
 @app.get("/")
 def survey_start():
-    '''
+    """
     displays home page of starting survey for user
-    '''
+    """
+
+    session[SESSION_KEY] = []
 
     title = survey.title
     instructions = survey.instructions
@@ -52,7 +54,10 @@ def redirect_answers():
     """
 
     answer = request.form['answer']
+    responses = session[SESSION_KEY]
     responses.append(answer)
+    session[SESSION_KEY] = responses
+
     if len(responses) < len(survey.questions):
         return redirect(f'/questions/{len(responses)}')
     else:
@@ -67,6 +72,7 @@ def complete():
 
     questions = survey.questions
     len_questions = len(questions)
+    responses = session[SESSION_KEY]
 
     return render_template('completion.html',
                             responses = responses,

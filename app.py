@@ -16,8 +16,6 @@ def survey_start():
     displays home page of starting survey for user
     """
 
-    session[SESSION_KEY] = []
-
     title = survey.title
     instructions = survey.instructions
     return render_template(
@@ -29,8 +27,10 @@ def survey_start():
 @app.post("/begin")
 def redirect_questions():
     """
-    redirects to first question
+    redirects to first question, initializes session variable to be empty list
     """
+
+    session[SESSION_KEY] = []
 
     return redirect('/questions/0')
 
@@ -38,8 +38,19 @@ def redirect_questions():
 @app.get('/questions/<int:question_id>')
 def handle_questions(question_id):
     """
-    displays question, choice buttons, and Continue button
+    displays question, choice buttons, and Continue button,
+    protects questions based on length of list of responses given
     """
+
+    responses = session[SESSION_KEY]
+    len_responses = len(responses)
+
+    if len_responses != question_id and len_responses != len(survey.questions):
+        flash("Please answer questions in order.")
+        return redirect(f"/questions/{len_responses}")
+    elif len_responses == len(survey.questions):
+        flash("You have already completed this survey!")
+        return redirect("/complete")
 
     print("question_id is a ------------>>>>>>>>>>>>>>>>>>>", type(question_id))
     question = survey.questions[question_id]
@@ -51,6 +62,7 @@ def handle_questions(question_id):
 def redirect_answers():
     """
     redirect to next question until last question and then moves to complete pg.
+    add answer to session
     """
 
     answer = request.form['answer']
